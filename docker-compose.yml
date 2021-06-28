@@ -1,0 +1,87 @@
+version: '3.7'
+ 
+services:
+  openmrs-referenceapplication-mysql:
+    restart: unless-stopped
+    image: mysql:5.6
+    ports:
+      - "3306:3306"
+    command: "mysqld --character-set-server=utf8 --collation-server=utf8_general_ci"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB:-openmrs}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Admin123}
+      MYSQL_USER: ${MYSQL_USER:-openmrs}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-Admin123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-openmrs}
+    healthcheck:
+      test: "mysqladmin ping --silent"
+      timeout: 20s
+    volumes:
+      - openmrs-referenceapplication-mysql-data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+ 
+  openmrs-referenceapplication:
+    restart: unless-stopped
+    image: openmrs/openmrs-reference-application-distro:latest
+    depends_on:
+      - openmrs-referenceapplication-mysql
+    ports:
+      - "8080:8080"
+      - "8046:8044"
+    links:
+      - "keycloak:localhost"
+    environment:
+      DB_DATABASE: ${MYSQL_DB:-openmrs}
+      DB_HOST: openmrs-referenceapplication-mysql
+      DB_USERNAME: ${MYSQL_USER:-openmrs}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-Admin123}
+      DEBUG: "true"
+      DB_CREATE_TABLES: "true"
+      DB_AUTO_UPDATE: "true"
+      MODULE_WEB_ADMIN: "true"
+      JDBC_PARAMS: "useSSL=false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs/"]
+      timeout: 20s
+    volumes:
+      - web-data:/usr/local/.OpenMRS/
+      - ./modules:/usr/local/.OpenMRS/modules/
+      - ./owa:/usr/local/.OpenMRS/owa/
+      # - type: bind
+      #   source: ./keycloak-config.json
+      #   target: /usr/local/tomcat/.OpenMRS/config/smart-keycloak.json
+
+  keycloak:
+    restart: unless-stopped
+    image: quay.io/keycloak/keycloak:latest
+    ports:
+      - "8088:8080"
+      - "1056:9000"
+    depends_on:
+      - openmrs-referenceapplication-mysql
+    environment:
+      SYS_PROPS: '-Djboss.socket.binding.port-offset=100'
+      JDBC_PARAMS: "useSSL=false"
+      DB_VENDOR: MYSQL
+      DB_ADDR: openmrs-referenceapplication-mysql
+      DB_PORT: ${MYSQL_PORT:-3306}
+      DB_DATABASE: ${MYSQL_KEYCLOAK_DATABASE:-keycloak}
+      DB_USER: ${MYSQL_KEYCLOAK_USER:-keycloak}
+      DB_PASSWORD: ${MYSQL_KEYCLOAK_PASSWORD:-password}
+      KEYCLOAK_USER: ${KEYCLOAK_USER:-admin}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD:-Admin123}
+    links:
+      - openmrs-referenceapplication-mysql
+    healthcheck:
+      test: "curl -sSL http://localhost:8080/auth"
+    volumes:
+      - type: bind
+        source: ./openmrs-keycloak-1.0.0-SNAPSHOT.ear
+        target: /opt/jboss/keycloak/standalone/deployments/openmrs-keycloak.ear
+      - type: bind
+        source: ./openmrs-keycloak-smart-authentication-1.0.0-SNAPSHOT.ear
+        target: /opt/jboss/keycloak/standalone/deployments/openmrs-keycloak-smart-authentication.ear
+ 
+volumes:
+   openmrs-referenceapplication-mysql-data:
+   web-data:
