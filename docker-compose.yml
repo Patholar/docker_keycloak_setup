@@ -18,7 +18,7 @@ services:
       timeout: 20s
     volumes:
       - openmrs-referenceapplication-mysql-data:/var/lib/mysql
-      - ./db-init:/docker-entrypoint-initdb.d:ro
+      - ./keycloak-database.sql:/docker-entrypoint-initdb.d/keycloak-database.sql:ro
  
   openmrs-referenceapplication:
     restart: unless-stopped
@@ -44,9 +44,9 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs/"]
       timeout: 20s
     volumes:
-      - web-data:/usr/local/.OpenMRS/
-      - ./modules:/usr/local/.OpenMRS/modules/
-      - ./owa:/usr/local/.OpenMRS/owa/
+      - web-data:/usr/local/tomcat/.OpenMRS/
+      - ./modules:/usr/local/tomcat/.OpenMRS/modules/
+      - ./owa:/usr/local/tomcat/.OpenMRS/owa/
       # - type: bind
       #   source: ./keycloak-config.json
       #   target: /usr/local/tomcat/.OpenMRS/config/smart-keycloak.json
@@ -54,6 +54,7 @@ services:
   keycloak:
     restart: unless-stopped
     image: quay.io/keycloak/keycloak:latest
+    entrypoint: [ "/opt/jboss/tools/docker-entrypoint.sh", "--debug", "*:9000" ]
     ports:
       - "8088:8080"
       - "1056:9000"
