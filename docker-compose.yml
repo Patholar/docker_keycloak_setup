@@ -44,6 +44,9 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs/"]
       timeout: 20s
     volumes:
+      - type: bind
+        source: ./smartonfhir-1.0.0-SNAPSHOT.omod
+        target: /usr/local/tomcat/.OpenMRS/modules/smartonfhir.omod
       - web-data:/usr/local/tomcat/.OpenMRS/
       - ./modules:/usr/local/tomcat/.OpenMRS/modules/
       - ./owa:/usr/local/tomcat/.OpenMRS/owa/
@@ -53,10 +56,10 @@ services:
 
   keycloak:
     restart: unless-stopped
-    image: quay.io/keycloak/keycloak:latest
+    image: quay.io/keycloak/keycloak:14.0.0
     entrypoint: [ "/opt/jboss/tools/docker-entrypoint.sh", "--debug", "*:9000" ]
     ports:
-      - "8088:8080"
+      - "8180:8080"
       - "1056:9000"
     depends_on:
       - openmrs-referenceapplication-mysql
@@ -71,11 +74,15 @@ services:
       DB_PASSWORD: ${MYSQL_KEYCLOAK_PASSWORD:-password}
       KEYCLOAK_USER: ${KEYCLOAK_USER:-admin}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD:-Admin123}
+      KEYCLOAK_IMPORT: /tmp/realm.json
     links:
       - openmrs-referenceapplication-mysql
     healthcheck:
       test: "curl -sSL http://localhost:8080/auth"
     volumes:
+      - type: bind
+        source: ./realm.json
+        target: /tmp/realm.json
       - type: bind
         source: ./openmrs-keycloak-1.0.0-SNAPSHOT.ear
         target: /opt/jboss/keycloak/standalone/deployments/openmrs-keycloak.ear
@@ -86,3 +93,5 @@ services:
 volumes:
    openmrs-referenceapplication-mysql-data:
    web-data:
+
+     
