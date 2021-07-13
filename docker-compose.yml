@@ -19,6 +19,7 @@ services:
     volumes:
       - openmrs-referenceapplication-mysql-data:/var/lib/mysql
       - ./keycloak-database.sql:/docker-entrypoint-initdb.d/keycloak-database.sql:ro
+      - ./openmrs_databases.sql:/docker-entrypoint-initdb.d/openmrs-database.sql:ro
  
   openmrs-referenceapplication:
     restart: unless-stopped
@@ -50,9 +51,9 @@ services:
       - web-data:/usr/local/tomcat/.OpenMRS/
       - ./modules:/usr/local/tomcat/.OpenMRS/modules/
       - ./owa:/usr/local/tomcat/.OpenMRS/owa/
-      # - type: bind
-      #   source: ./keycloak-config.json
-      #   target: /usr/local/tomcat/.OpenMRS/config/smart-keycloak.json
+      - type: bind
+        source: ./smart-keycloak.json
+        target: /usr/local/tomcat/.OpenMRS/config/smart-keycloak.json
 
   keycloak:
     restart: unless-stopped
@@ -62,7 +63,7 @@ services:
       - "8180:8080"
       - "1056:9000"
     depends_on:
-      - openmrs-referenceapplication-mysql
+      - openmrs-referenceapplication-mysql 
     environment:
       SYS_PROPS: '-Djboss.socket.binding.port-offset=100'
       JDBC_PARAMS: "useSSL=false"
