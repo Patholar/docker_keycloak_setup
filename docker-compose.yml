@@ -23,7 +23,7 @@ services:
  
   openmrs-referenceapplication:
     restart: unless-stopped
-    image: openmrs/openmrs-reference-application-distro:2.11.0
+    image: openmrs/openmrs-reference-application-distro:latest
     depends_on:
       - openmrs-referenceapplication-mysql
     ports:
