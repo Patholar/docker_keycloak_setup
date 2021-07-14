@@ -2010,7 +2010,7 @@ CREATE TABLE `liquibasechangeloglock` (
 
 LOCK TABLES `liquibasechangeloglock` WRITE;
 /*!40000 ALTER TABLE `liquibasechangeloglock` DISABLE KEYS */;
-INSERT INTO `liquibasechangeloglock` VALUES (1,1,'2021-02-05 19:17:56','medhavi-G3-3579.bbrouter (192.168.1.38)');
+INSERT INTO `liquibasechangeloglock` VALUES (1,0,NULL,NULL);
 /*!40000 ALTER TABLE `liquibasechangeloglock` ENABLE KEYS */;
 UNLOCK TABLES;
 
