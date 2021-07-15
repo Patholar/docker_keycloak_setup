@@ -29,6 +29,7 @@ services:
     ports:
       - "8080:8080"
       - "8046:8044"
+    network_mode: "host"
     links:
       - "keycloak:localhost"
     environment:
