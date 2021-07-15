@@ -6,7 +6,7 @@ Ensure you have [Docker](https://docs.docker.com/get-docker/) and [Docker compos
 To run the SMART-on-FHIR project, Follow the instructions mentioned below:
 1. Clone the repository locally
 
-        git clone https://github.com/openmrs/openmrs-module-smartonfhir.git
+        git clone https://github.com/theanandankit/openmrs-keycloak-dockerized-setup.git
 
 2. Run the docker-compose
 
@@ -19,7 +19,9 @@ To run the SMART-on-FHIR project, Follow the instructions mentioned below:
 | OpenMRS   |  http://localhost:8080/openmrs  | admin : Admin123 |
 | keycloak   |    http://localhost:8180  |  admin : Admin123 | 
 
-4. Stop Docker-compose
+4. You will also need a SMART App running locally. Here is a [DEMO SAMRT App](https://github.com/theanandankit/Demo-Smart-App). 
+
+5. Stop Docker-compose
 
         docker-compose down -v
 
