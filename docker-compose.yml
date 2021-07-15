@@ -18,23 +18,18 @@ services:
       timeout: 20s
     volumes:
       - openmrs-referenceapplication-mysql-data:/var/lib/mysql
-      - ./keycloak-database.sql:/docker-entrypoint-initdb.d/keycloak-database.sql:ro
-      - ./openmrs_databases.sql:/docker-entrypoint-initdb.d/openmrs-database.sql:ro
+      - ./db-init/keycloak-database.sql:/docker-entrypoint-initdb.d/keycloak-database.sql:ro
+      - ./db-init/openmrs_databases.sql:/docker-entrypoint-initdb.d/openmrs-database.sql:ro
  
   openmrs-referenceapplication:
     restart: unless-stopped
     image: openmrs/openmrs-reference-application-distro:latest
     depends_on:
       - openmrs-referenceapplication-mysql
-    ports:
-      - "8080:8080"
-      - "8046:8044"
     network_mode: "host"
-    links:
-      - "keycloak:localhost"
     environment:
       DB_DATABASE: ${MYSQL_DB:-openmrs}
-      DB_HOST: openmrs-referenceapplication-mysql
+      DB_HOST: localhost
       DB_USERNAME: ${MYSQL_USER:-openmrs}
       DB_PASSWORD: ${MYSQL_PASSWORD:-Admin123}
       DEBUG: "true"
@@ -46,14 +41,14 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs/"]
       timeout: 20s
     volumes:
-      - type: bind
-        source: ./smartonfhir-1.0.0-SNAPSHOT.omod
-        target: /usr/local/tomcat/.OpenMRS/modules/smartonfhir.omod
       - web-data:/usr/local/tomcat/.OpenMRS/
       - ./modules:/usr/local/tomcat/.OpenMRS/modules/
       - ./owa:/usr/local/tomcat/.OpenMRS/owa/
       - type: bind
-        source: ./smart-keycloak.json
+        source: ./module/smartonfhir-1.0.0-SNAPSHOT.omod
+        target: /usr/local/tomcat/.OpenMRS/modules/smartonfhir.omod
+      - type: bind
+        source: ./config/smart-keycloak.json
         target: /usr/local/tomcat/.OpenMRS/config/smart-keycloak.json
 
   keycloak:
@@ -83,13 +78,13 @@ services:
       test: "curl -sSL http://localhost:8080/auth"
     volumes:
       - type: bind
-        source: ./realm.json
+        source: ./config/realm.json
         target: /tmp/realm.json
       - type: bind
-        source: ./openmrs-keycloak-1.0.0-SNAPSHOT.ear
+        source: ./provider/openmrs-keycloak-1.0.0-SNAPSHOT.ear
         target: /opt/jboss/keycloak/standalone/deployments/openmrs-keycloak.ear
       - type: bind
-        source: ./openmrs-keycloak-smart-authentication-1.0.0-SNAPSHOT.ear
+        source: ./provider/openmrs-keycloak-smart-authentication-1.0.0-SNAPSHOT.ear
         target: /opt/jboss/keycloak/standalone/deployments/openmrs-keycloak-smart-authentication.ear
  
 volumes:
